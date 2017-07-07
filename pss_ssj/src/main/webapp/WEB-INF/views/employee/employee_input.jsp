@@ -1,0 +1,214 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@taglib uri="/struts-tags" prefix="s"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<s:if test="id==null">
+	<title>员工基本信息添加</title>
+</s:if>
+<s:else>
+	<title>员工基本信息编辑</title>
+</s:else>
+<%@ include file="/WEB-INF/views/common/head.jsp"%>
+
+<script type="text/javascript"
+	src="/assets/validator/js/bootstrapValidator.js"></script>
+<!-- 引入国际化 -->
+<script type="text/javascript"
+	src="/assets/validator/js/language/zh_CN.js"></script>
+<!-- 引入自己写的js文件，这个文件必须要在bootstrapValidator.js下面 -->
+<script type="text/javascript" src="/js/model/employee.js"></script>
+
+</head>
+
+<body>
+	<s:fielderror></s:fielderror>
+	<%-- 	<s:debug></s:debug> --%>
+	<div class="main-content">
+		<div class="breadcrumbs" id="breadcrumbs">
+			<script type="text/javascript">
+				try {
+					ace.settings.check('breadcrumbs', 'fixed')
+				} catch (e) {
+				}
+			</script>
+
+			<ul class="breadcrumb">
+				<li><i class="icon-home home-icon"></i> <a href="#">Home</a></li>
+
+				<li><a href="#">Forms</a></li>
+				<li class="active">Form Elements</li>
+			</ul>
+			<!-- .breadcrumb -->
+
+			<div class="nav-search" id="nav-search">
+				<form class="form-search">
+					<span class="input-icon"> <input placeholder="Search ..."
+						class="nav-search-input" id="nav-search-input" autocomplete="off"
+						type="text"> <i class="icon-search nav-search-icon"></i>
+					</span>
+				</form>
+			</div>
+			<!-- #nav-search -->
+		</div>
+
+		<div class="page-content">
+			<div class="page-header">
+				<h1>
+					Form Elements <small> <i class="icon-double-angle-right"></i>
+						Common form elements and layouts
+					</small>
+				</h1>
+			</div>
+			<!-- /.page-header -->
+
+			<div class="row">
+				<div class="col-xs-12">
+					<!-- PAGE CONTENT BEGINS -->
+
+					<!-- <form class="form-horizontal" role="form"> -->
+					<!-- s的form表单action中不能加'/'否则不能访问，非要使用'/'需要在namespace属性中添加'/' -->
+					<s:form class="form-horizontal" action="employee_save"
+						id="domainForm">
+						<!-- 设置隐藏域用于存储id,根据id是否为空判断是保存还是修改操作 -->
+						<s:hidden name="id" />
+						<!-- 隐藏域来保存传过来的值，防止重定向的时候被丢失 -->
+						<s:hidden name="baseQuery.currentPage" />
+						<s:hidden name="baseQuery.pageSize" />
+						<s:hidden name="baseQuery.username" />
+						<s:hidden name="baseQuery.email" />
+						<s:hidden name="baseQuery.deptId" />
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right"
+								for="form-field-1"> 用户名 </label>
+
+							<div class="col-sm-9">
+								<s:textfield class="clearAll" name="username" />
+								<!-- 显示错误信息 -->
+								<s:property value="fieldErrors['nameIsNull'][0]" />
+							</div>
+						</div>
+
+						<div class="space-4"></div>
+						<s:if test="id==null">
+							<div class="form-group">
+								<label class="col-sm-3 control-label no-padding-right"
+									for="form-field-2"> 密&nbsp;码 </label>
+
+								<div class="col-sm-9">
+									<s:password name="password" label="密&nbsp;码" />
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-3 control-label no-padding-right"
+									for="form-field-2"> 重复密码 </label>
+
+								<div class="col-sm-9">
+									<s:password name="confirmPassword" label="重复密码" />
+								</div>
+							</div>
+						</s:if>
+						<s:else>
+							<!-- 
+								隐藏域的优点：方便。简单
+								隐藏域的缺点：如果数据太多，就显得代码庞大
+										且不安全，容易造成数据泄漏
+							 -->
+							<%-- <s:hidden name="password" /> --%>
+						</s:else>
+						<div class="space-4"></div>
+
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right"
+								for="form-field-2"> 邮&nbsp;箱 </label>
+
+							<div class="col-sm-9">
+								<s:textfield class="clearAll" name="email" label="邮&nbsp;箱" />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right"
+								for="form-field-2"> 年&nbsp;龄 </label>
+
+							<div class="col-sm-9">
+								<s:textfield class="clearAll" name="age" label="年&nbsp;龄" />
+								<span style="color: red" class="middle"><s:property
+										value="fieldErrors['age'][0]" /></span>
+							</div>
+
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right"
+								for="form-field-2"> 部&nbsp;门 </label>
+
+							<div class="col-sm-9">
+								<s:select id="depts" name="department.id" list="#allDept"
+									listKey="id" listValue="name" headerKey="-1"
+									headerValue="--请选择--" />
+							</div>
+						</div>
+
+						<%-- 角色列表 --%>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right"
+								for="form-field-2"> 角&nbsp;色 </label>
+
+							<div class="col-sm-9">
+								<s:checkboxlist name="roles.id" list="#allRoles"
+									value="roles.{id}" listKey="id" listValue="name" />
+							</div>
+						</div>
+
+						<div class="space-4"></div>
+
+						<div class="clearfix form-actions">
+							<div class="col-md-offset-3 col-md-9">
+								<!-- bootstrap中不支持默认type，所以需要写出来 -->
+								<button type="submit" class="btn btn-info">
+									<i class="icon-ok bigger-110"></i> 提交
+								</button>
+
+								&nbsp; &nbsp; &nbsp;
+								<s:if test="id==null">
+									<button class="btn" type="reset">
+										<i class="icon-refresh bigger-110"></i> 重置
+									</button>
+								</s:if>
+								<s:else>
+									<!-- 									<button class="btn" type="button" onclick="clearAll()"> -->
+									<!-- 										<i class="icon-undo bigger-110"></i> 重置 -->
+									<!-- 									</button> -->
+									<button class="btn" type="button" id="resetBtn_edit">
+										<i class="icon-refresh bigger-110"></i> 重置
+									</button>
+									<script type="text/javascript">
+										//点击重置按钮的时候，将键入的所有数据清空
+										function clearAll() {
+											//$(".clearAll").attr("value","");
+											$(".clearAll").attr("value", "");
+											$("#depts").val(-1);
+											//$("#xxxxxx").attr("value","");
+										}
+									</script>
+								</s:else>
+
+								&nbsp; &nbsp; &nbsp;
+								<!-- 取消时也应返回到之前跳转过来的对应页 -->
+								<button class="btn" id="cancelBtn" type="button">
+									<i class="icon-undo bigger-110"></i> 取消
+								</button>
+							</div>
+						</div>
+					</s:form>
+					<!-- </form> -->
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

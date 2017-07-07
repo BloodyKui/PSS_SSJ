@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+				http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+				http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	
+	<!-- cron表达式:在每天早上8点到晚上8点期间每1分钟触发一次 -->
+	<!--value>0 0/1 8-20 * * ?</value-->
+	<!-- cron表达式:每5分钟触发一次 -->
+	<!-- <value>0 0/5 * * * ?</value> -->			
+			
+	<task:scheduled-tasks>		
+		<!-- 执行dBCache里面的clearCache方法，执行频率是cron表达式 -->	
+		<task:scheduled ref="dBCache" method="clearCache" cron="0 59 * * * ?" />
+	</task:scheduled-tasks>
+	
+</beans>

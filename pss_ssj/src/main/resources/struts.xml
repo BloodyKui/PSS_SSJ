@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="true" />
+	<!-- 要求访问时所有action必须添加action后缀 -->
+	<constant name="struts.action.extension" value="action" />
+	<!-- 是表单主题使用简单样式 ,即无样式 -->
+	<constant name="struts.ui.theme" value="simple" />
+	<!-- 支持国际化: value:资源文件的基本名词 -->
+	<constant name="struts.custom.i18n.resources" value="app" />
+
+	<!-- Add packages here -->
+	<!-- json-default继承自struts-default -->
+	<package name="mys" namespace="/" extends="struts-default,json-default">
+		<interceptors>
+			<!-- 声明自定义拦截器 -->
+			<interceptor name="permission"
+				class="cn.lkk.pss.web.interceptor.PermissionInterceptor"></interceptor>
+			<!-- 设置自定义拦截器栈 -->
+			<interceptor-stack name="PssStack">
+				<!-- 引用拦截器，自定义的在前 -->
+				<interceptor-ref name="permission">
+					<param name="excludeActions">LoginAction,RandomCodeAction</param>
+				</interceptor-ref>
+				<interceptor-ref name="paramsPrepareParamsStack" />
+			</interceptor-stack>
+		</interceptors>
+		<!-- 引用自定义拦截器栈 -->
+		<default-interceptor-ref name="PssStack" />
+		<!-- 预留全局结果视图 -->
+		<global-results>
+			<result name="login">login.jsp</result>
+			<result name="error">/WEB-INF/jsp/error.jsp</result>
+			<!-- 禁止访问 -->
+			<result name="forbiden">forbiden.jsp</result>
+			<!-- 因为很多地方都需要提示权限不足的页面，所以定义为全局视图 -->
+			<result name="noAuthority">/WEB-INF/views/noAuthority.jsp</result>
+			<!-- 因为很多地方都需要下载功能，所以定义为全局视图 -->
+			<result name="download" type="stream">
+				<!-- 这是mime类型，在tomcat中可以查找 -->
+				<param name="contentType">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</param>
+				<!-- public InputStream getFileDownloadInputStream() 名字要与这个get方法的属性一致，否则拿不到输入流 -->
+				<param name="inputName">fileDownloadInputStream</param>
+				<!-- 下载的文件名称 -->
+				<param name="contentDisposition">filename=${downloadFileName}</param>
+				<!-- 下载时的缓存 -->
+				<param name="bufferSize">4096</param>
+			</result>
+
+			<result name="json" type="json">
+				<!-- <result-type name="json"属性json的类 class="org.apache.struts2.json.JSONResult"/> -->
+				<!-- 没有配置root属性,输出当前action的get属性的值 -->
+				<!-- 如果配置root属性,只输出root指向的对象 -->
+				<!-- private String root; -->
+				<param name="root">#map</param>
+				<!-- 不输出空的属性 -->
+				<!-- private boolean excludeNullProperties = false; -->
+				<param name="excludeNullProperties">true</param>
+			</result>
+
+		</global-results>
+		<action name="main_*" class="mainAction" method="{1}">
+			<result>/WEB-INF/views/main.jsp</result>
+			<result name="right">/WEB-INF/views/main_right.jsp</result>
+		</action>
+		
+		<action name="random_*" class="randomCodeAction" method="{1}">
+		</action>
+
+		<action name="login_*" class="loginAction" method="{1}">
+			<result type="redirectAction">main</result>
+		</action>
+		<!-- 配置上传的action -->
+		<action name="import" class="importAction">
+			<result>/WEB-INF/views/import.jsp</result>
+		</action>
+		<!-- 因为username,email是employeeaction特有的字段，不应该让其他的action也能接收，所以单独将employeeaction 
+			写出来 -->
+		<action name="employee_*" class="employeeAction" method="{1}">
+			<!-- 列表页面 -->
+			<result>/WEB-INF/views/employee/employee.jsp</result>
+			<!-- 添加/修改页面 -->
+			<result name="input">/WEB-INF/views/employee/employee_input.jsp
+			</result>
+			<!-- 重定向到本页面 -->
+			<result name="reload" type="redirectAction">
+				<param name="actionName">employee</param>
+				<param name="namespace">/</param>
+
+				<!-- 重定向时要带的参数 struts.xml中可以拿值栈中的值 -->
+				<param name="baseQuery.currentPage">${baseQuery.currentPage}</param>
+				<param name="baseQuery.pageSize">${baseQuery.pageSize}</param>
+				<param name="baseQuery.username">${baseQuery.username}</param>
+				<param name="baseQuery.email">${baseQuery.email}</param>
+				<param name="baseQuery.deptId">${baseQuery.deptId}</param>
+				<param name="id">${id}</param>
+			</result>
+		</action>
+
+		<!-- 第1个*代表请求的url地址,如employee -->
+		<!-- 第2个*代表请求的url的方法,如employee_input -->
+		<action name="*_*" class="{1}Action" method="{2}">
+			<!-- 列表页面 -->
+			<result>/WEB-INF/views/{1}/{1}.jsp</result>
+			<!-- 添加/修改页面 -->
+			<result name="input">/WEB-INF/views/{1}/{1}_input.jsp</result>
+			<!-- 重定向到本页面 -->
+			<result name="reload" type="redirectAction">
+				<param name="actionName">{1}</param>
+				<param name="namespace">/</param>
+
+				<!-- 重定向时要带的参数 struts.xml中可以拿值栈中的值 -->
+				<param name="baseQuery.currentPage">${baseQuery.currentPage}</param>
+				<param name="baseQuery.pageSize">${baseQuery.pageSize}</param>
+				<param name="id">${id}</param>
+			</result>
+			<result name="{2}">/WEB-INF/views/{1}/{1}_{2}.jsp</result>
+		</action>
+
+	</package>
+</struts>

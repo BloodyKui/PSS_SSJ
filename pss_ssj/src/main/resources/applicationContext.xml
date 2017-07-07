@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<!-- 组件扫描 -->
+	<!-- 可以处理@Repository, @Service, and @Controller,@Autowired,@PersistenceContext 
+		注解 -->
+	<context:component-scan base-package="cn.lkk" />
+
+	<!-- Bean对象注入的顺序 -->
+	<!-- jdbc.properties->dataSource->entityManagerFactory->dao->service->junit->action -->
+
+	<!-- 加载jdbc.properties配置文件 web项目加载配置文件必须要添加classpath:前缀 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<!-- 注入数据连接池或数据源 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!--maxActive: 最大连接数量 -->
+		<property name="maxActive" value="150" />
+		<!--minIdle: 最小空闲连接 -->
+		<property name="minIdle" value="5" />
+		<!--maxIdle: 最大空闲连接 -->
+		<property name="maxIdle" value="20" />
+		<!--initialSize: 初始化连接 -->
+		<property name="initialSize" value="30" />
+		<!-- 用来配置数据库断开后自动连接的 -->
+		<!-- 连接被泄露时是否打印 -->
+		<property name="logAbandoned" value="true" />
+		<!--removeAbandoned: 是否自动回收超时连接 -->
+		<property name="removeAbandoned" value="true" />
+		<!--removeAbandonedTimeout: 超时时间(以秒数为单位) -->
+		<property name="removeAbandonedTimeout" value="10" />
+		<!--maxWait: 超时等待时间以毫秒为单位 1000等于60秒 -->
+		<property name="maxWait" value="1000" />
+		<!-- 在空闲连接回收器线程运行期间休眠的时间值,以毫秒为单位. -->
+		<property name="timeBetweenEvictionRunsMillis" value="10000" />
+		<!-- 在每次空闲连接回收器线程(如果有)运行时检查的连接数量 -->
+		<property name="numTestsPerEvictionRun" value="10" />
+		<!-- 1000 * 60 * 30 连接在池中保持空闲而不被空闲连接回收器线程 -->
+		<property name="minEvictableIdleTimeMillis" value="10000" />
+		<property name="validationQuery" value="SELECT NOW() FROM DUAL" />
+
+	</bean>
+
+	<!-- 配置entityManagerFactory对象 -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!--使用hibernate实现类适配器， 配置方言，建表策略 ，显示sql -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"></property>
+				<property name="generateDdl" value="false"></property>
+				<property name="showSql" value="true"></property>
+			</bean>
+		</property>
+		<!-- 从哪个包去扫描@Entity，domain包 public void setPackagesToScan(String... packagesToScan) -->
+		<property name="packagesToScan" value="cn.lkk.pss.domain"></property>
+	</bean>
+
+	<!-- Spring Data Jpa配置 ******************************************** -->
+	<!-- base-package:扫描的包 -->
+	<!-- <jpa:repositories base-package="cn.lkk.pss.repository" -->
+	<!-- transaction-manager-ref="transactionManager" -->
+	<!-- entity-manager-factory-ref="entityManagerFactory" /> -->
+
+	<!-- Spring Data Jpa配置 -->
+	<!-- base-package:扫描的包 -->
+	<!-- repository-impl-postfix:仓库自定义实现类型的后缀 自动扫描并添加到接口的实现 -->
+	<!-- factory-class 仓库接口的实现工厂 ，不能直接new对象，而需要使用工厂来产生对象时，使用这个配置-->
+	<jpa:repositories base-package="cn.lkk.pss.repository"
+		repository-impl-postfix="Impl"
+		factory-class="cn.lkk.pss.repository.BaseRepositoryFactoryBean"
+		transaction-manager-ref="transactionManager"
+		entity-manager-factory-ref="entityManagerFactory" />
+
+	<!-- 声明事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<!-- 开启事务扫描 默认配置transaction-manager="transactionManager" -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<!-- 引入其他的配置文件 -->
+	<import resource="classpath:spring_plugin/applicationContext-*.xml"/>
+</beans>
